@@ -1,6 +1,8 @@
 "use server";
 
 import Hello from "./_components/hello";
+import { Counter } from "./_components/counter";
+
 export async function addPerson(userName) {
   return {
     ui: (
@@ -10,3 +12,11 @@ export async function addPerson(userName) {
     ),
   };
 }
+
+// export async function getComponent() {
+//   return (
+//     <div id="streamed">
+//       <Counter />
+//     </div>
+//   );
+// }

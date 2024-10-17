@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, cloneElement } from "react";
+import React, { useState, cloneElement, useEffect } from "react";
 import { addPerson } from "../actions";
-import Counter from "./counter";
 
-export default function Person() {
+export default function Person({ getComponent }) {
   const [result, setResult] = useState();
+  const [comp, setComp] = useState();
+
+  useEffect(() => {
+    getComponent().then(setComp);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +39,7 @@ export default function Person() {
       </div>
       <button type="submit">Submit</button>
       {result ? result.ui : null}
+      {comp}
     </form>
   );
 }

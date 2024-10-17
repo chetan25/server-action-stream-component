@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-const Counter = ({ base }) => {
+export const Counter = ({ base }) => {
   const [count, setCount] = useState(0);
 
   return (

@@ -37,7 +37,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
   {\"children\":[[\"$\",\"h1\",null,{\"children\":\"Server Action streaming components example\"}]}
   ```
 
-- If we try to stream a client component back as a response of server action as shown below
+- If we try to consume a `Server function` in a client component that stream a client component back as a response of server action as shown below
 
 ```js
 export async function addPerson(data) {
@@ -82,7 +82,59 @@ export async function addPerson(data) {
   ```
 
 - This shows that we just pass the fully parsed React Element(object) which is basically an output of passing our component to `CreateElement`. We never get the`js` of that component in FE.
-- This is super cool but wait, what if we need interactivity, there is no easy way around it. I tried the following ways to add an interactive component via server action but they all resulted in error, mentioned above:
+- This is super cool but wait, what if we need interactivity, there is no easy way around it if you don't want to ship the JS for that component to FE.
+- But if you just want to deicide what component to render from the `Server Function` you can still render a fully interactive component by following these steps:
+
+  - Instead of directly calling the `Server Function` in the Client, pass that function as a prop to the client component via a server component.
+  - In this Server component we define the Server Function that renders the Interactive Client component and pass it to a Client component
+
+    ```js
+    import Counter from "./_components/counter";
+
+    export default function Home() {
+      async function getComponent() {
+        "use server";
+        return (
+          <div id="streamed">
+            <Counter /> // Client compomemnt with state
+          </div>
+        );
+      }
+
+      return (
+        // passing server action as a prop
+        <Person getComponent={getComponent} />
+      );
+    }
+    ```
+
+  - Now we can just render it in the Client component as
+
+    ```js
+    export default function Person({ getComponent }) {
+      const [result, setResult] = useState();
+      const [comp, setComp] = useState();
+
+      useEffect(() => {
+        getComponent().then(setComp);
+      }, []);
+
+      return <>{comp}</>;
+    }
+    ```
+
+  - But remember this Counter component is not getting rendered in the Server, the output returned form server will be like this
+
+    ```js
+      0:["$@1",["development",null]]
+      2:I["(app-pages-browser)/./src/app/_components/counter.jsx",["app/page","static/  chunks/app/page.js"],"default"]
+      1:["$","div",null,{"id":"streamed","children":["$","$L2",null,{}]}]
+
+    ```
+
+  - Noticed the reference to the `chunks/app/page.js`, in the network tab you can find the file and notice that the `Code for Counter component is there`.
+
+- I tried the following ways to add an interactive component via server action but they all resulted in error, mentioned above:
 
   1. Use Custom Event for event handling
   2. Pass the interactive piece of the component as slot
@@ -112,7 +164,10 @@ export async function addPerson(data) {
   };
   ```
 
+```
+
 ![(UI)](./public/stream-comp.png)
 
 - This is a simple example, but I have used this in my [portfolio](https://cdasauni.com) to Stream a Component that I create after the LLM response and then mutate it to add an interactive button to it.
   ![(UI)](./public/portfolio.png)
+```
